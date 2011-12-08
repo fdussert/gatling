@@ -59,8 +59,9 @@ import com.excilys.ebi.gatling.core.util.StringHelper.interpolate
  * @param checks the checks that will be done on response
  * @param next the next action to be executed
  * @param requestName the name of the request
+ * @param groups the groups to which this action belongs
  */
-class GatlingAsyncHandler(session: Session, checks: List[HttpCheck], next: Action, requestName: String)
+class GatlingAsyncHandler(session: Session, checks: List[HttpCheck], next: Action, requestName: String, groups: List[String])
 		extends AsyncHandler[Void] with Logging {
 
 	private val executionStartTimeNano = System.nanoTime
@@ -131,7 +132,7 @@ class GatlingAsyncHandler(session: Session, checks: List[HttpCheck], next: Actio
 	private def sendLogAndExecuteNext(requestResult: ResultStatus, requestMessage: String, processingStartTimeNano: Long) = {
 		actorFor(session.writeActorUuid).map { a =>
 			val responseTimeMillis = TimeUnit.MILLISECONDS.convert(processingStartTimeNano - executionStartTimeNano, TimeUnit.NANOSECONDS)
-			a ! ActionInfo(session.scenarioName, session.userId, "Request " + requestName, executionStartDate, responseTimeMillis, requestResult, requestMessage)
+			a ! ActionInfo(session.scenarioName, session.userId, "Request " + requestName, executionStartDate, responseTimeMillis, requestResult, requestMessage, groups)
 		}
 
 		session.setAttribute(Session.LAST_ACTION_DURATION_KEY, System.nanoTime() - processingStartTimeNano)
