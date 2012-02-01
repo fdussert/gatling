@@ -25,8 +25,8 @@ import com.excilys.ebi.gatling.core.check.extractor.ExtractorFactory
 
 object ResolvedCheck {
 
-	private def buildExtractors[T](where: T, checks: List[Check[T]]) = {
-		val extractors = new HashMap[ExtractorFactory[_], Extractor]
+	private def buildExtractors[T, XT, XP](where: T, checks: List[Check[T, XT, XP]]) = {
+		val extractors = new HashMap[ExtractorFactory[T, XT], Extractor[XT]]
 		checks.foreach { check =>
 			val extractorFactory = check.how
 			if (extractors.get(extractorFactory).isEmpty)
@@ -35,18 +35,19 @@ object ResolvedCheck {
 		extractors
 	}
 
-	private def resolveChecks[T](s: Session, where: T, checks: List[Check[T]]) = {
+	private def resolveChecks[T](s: Session, where: T, checks: List[Check[T, AnyRef, AnyRef]]) = {
 
 		val extractors = buildExtractors(where, checks)
 		checks.map { check =>
 			val what = check.what(s)
 			val how = extractors.get(check.how).getOrElse(throw new IllegalArgumentException("Extractor should have been built"))
-			val expected = check.expected.map(_(s))
-			new ResolvedCheck(what, how, check.strategy, expected, check.saveAs)
+			val expected = check.expected(s)
+			val strategy = check.strategy
+			new ResolvedCheck(what, how, strategy, expected, check.saveAs)
 		}
 	}
 
-	private def applyChecks(s: Session, resolvedChecks: List[ResolvedCheck]): (Session, CheckResult) = {
+	private def applyChecks(s: Session, resolvedChecks: List[ResolvedCheck[_, _]]): (Session, CheckResult) = {
 
 		var newSession = s
 		var lastCheckResult: CheckResult = null
@@ -64,13 +65,13 @@ object ResolvedCheck {
 		(newSession, lastCheckResult)
 	}
 
-	def resolveAndApplyChecks[T](s: Session, where: T, checks: List[Check[T]]) = {
+	def resolveAndApplyChecks[T](s: Session, where: T, checks: List[Check[T, AnyRef, AnyRef]]) = {
 		val resolvedChecks = resolveChecks(s, where, checks)
 		applyChecks(s, resolvedChecks)
 	}
 }
 
-class ResolvedCheck(val what: String, val extractor: Extractor, val strategy: CheckStrategy, val expected: List[String], val saveAs: Option[String])
+class ResolvedCheck[XT, XP](val what: String, val extractor: Extractor[XT], val strategy: CheckStrategy[XT, XP], val expected: XP, val saveAs: Option[String])
 		extends Logging with ClassSimpleNameToString {
 
 	/**
@@ -80,13 +81,9 @@ class ResolvedCheck(val what: String, val extractor: Extractor, val strategy: Ch
 	 * @return a CheckResult that indicates whether the check succeeded or not
 	 */
 	def check = {
-		val extractedValueAsList = extractor.extract(what)
-		val extractedValue = extractor match {
-			case multi: MultiValuedExtractor => extractedValueAsList
-			case single => extractedValueAsList(0)
-		}
+		val extractedValue = extractor.extract(what)
 
-		if (strategy(extractedValueAsList, expected)) {
+		if (strategy(extractedValue, expected)) {
 			new CheckResult(true, extractedValue)
 		} else {
 			val message = new StringBuilder().append("Check failed : expected ").append(strategy).append("(").append(expected).append(") but found ").append(extractedValue).toString

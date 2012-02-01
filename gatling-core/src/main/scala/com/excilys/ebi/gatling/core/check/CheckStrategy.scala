@@ -15,7 +15,7 @@
  */
 package com.excilys.ebi.gatling.core.check
 
-trait CheckStrategy {
+abstract class CheckStrategy[-XT, -XP] {
 
-	def apply(value: List[String], expected: List[String]): Boolean
+	def apply(value: XT, expected: XP): Boolean
 }

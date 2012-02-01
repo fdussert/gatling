@@ -23,7 +23,7 @@ import com.excilys.ebi.gatling.core.log.Logging
  * Extractors are objects responsible for extracting elements in others
  * Typically, we can think of Regular Expressions.
  */
-abstract class Extractor extends Logging {
+abstract class Extractor[+XT] extends Logging {
 
 	/**
 	 * this method does the actual extraction of what is designed by the expression
@@ -31,7 +31,7 @@ abstract class Extractor extends Logging {
 	 * @param expression the expression that defines the extraction
 	 * @return the result of the search, being None if nothing was found or Some(something)
 	 */
-	def extract(expression: String): List[String]
+	def extract(expression: String): XT
 }
 
 trait MultiValuedExtractor

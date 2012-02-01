@@ -20,12 +20,12 @@ import com.excilys.ebi.gatling.core.log.Logging
 /**
  * This trait is used to define different types of Extractors
  */
-trait ExtractorFactory[T] extends Logging {
+trait ExtractorFactory[T, XT] extends Logging {
 
 	/**
 	 * Method that will generate the adequate Extractor
 	 *
 	 * @param where where to extract from
 	 */
-	def getExtractor(where: T): Extractor
+	def getExtractor(where: T): Extractor[XT]
 }

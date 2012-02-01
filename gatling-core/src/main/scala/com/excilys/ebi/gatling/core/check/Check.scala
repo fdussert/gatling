@@ -30,6 +30,6 @@ import com.excilys.ebi.gatling.core.util.StringHelper.EMPTY
  * @param strategy the strategy used to perform the Check
  * @param expected the expected value of what has been found
  */
-abstract class Check[T](val what: Session => String, val how: ExtractorFactory[T], val strategy: CheckStrategy, val expected: List[Session => String], val saveAs: Option[String])
+abstract class Check[T, XT, XP](val what: Session => String, val how: ExtractorFactory[T, XT], val strategy: CheckStrategy[XT, XP], val expected: Session => XP, val saveAs: Option[String])
 	extends Logging with ClassSimpleNameToString
 

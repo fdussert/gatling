@@ -23,40 +23,40 @@ object CheckBuilderVerify {
 
 	implicit def rangeToString(range: Range) = range.mkString(SEPARATOR)
 
-	val exists = new CheckStrategy {
+	val exists = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = !value.isEmpty
 		override def toString = "exists"
 	}
-	val notExists = new CheckStrategy {
+	val notExists = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = value.isEmpty
 		override def toString = "notExists"
 	}
-	val eq = new CheckStrategy {
+	val eq = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = !value.isEmpty && !expected.isEmpty && value(0) == expected(0)
 		override def toString = "eq"
 	}
-	val neq = new CheckStrategy {
+	val neq = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = !value.isEmpty && value != expected
 		override def toString = "neq"
 	}
-	val in = new CheckStrategy {
+	val in = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = !value.isEmpty && !expected.isEmpty && expected(0).split(SEPARATOR).contains(value(0))
 		override def toString = "in"
 	}
-	val listEq = new CheckStrategy {
+	val listEq = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = !value.isEmpty && value == expected
 		override def toString = "listEq"
 	}
-	val listSize = new CheckStrategy {
+	val listSize = new CheckStrategy[WhatTheFuck, WhatTheFuck] {
 		def apply(value: List[String], expected: List[String]) = value.size == expected(0).toInt
 		override def toString = "listSize"
 	}
 }
 
 trait CheckBuilderVerify[B <: CheckBuilder[B, _]] extends CheckBuilderSave[B] { this: CheckBuilder[B, _] with CheckBuilderSave[B] =>
-	def verify(strategy: CheckStrategy) = newInstanceWithVerify(strategy)
-	def verify(strategy: CheckStrategy, expected: List[String]) = newInstanceWithVerify(strategy, expected.map(interpolate(_)))
-	def verify(strategy: CheckStrategy, expected: String) = newInstanceWithVerify(strategy, List(interpolate(expected)))
+	def verify(strategy: CheckStrategy[WhatTheFuck, WhatTheFuck]) = newInstanceWithVerify(strategy)
+	def verify(strategy: CheckStrategy[WhatTheFuck, WhatTheFuck], expected: List[String]) = newInstanceWithVerify(strategy, expected.map(interpolate(_)))
+	def verify(strategy: CheckStrategy[WhatTheFuck, WhatTheFuck], expected: String) = newInstanceWithVerify(strategy, List(interpolate(expected)))
 }
 
 trait CheckBuilderVerifyOne[B <: CheckBuilder[B, _]] extends CheckBuilderVerify[B] { this: CheckBuilder[B, _] with CheckBuilderSave[B] =>
